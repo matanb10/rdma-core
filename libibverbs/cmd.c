@@ -43,6 +43,8 @@
 
 #include "ibverbs.h"
 #include <ccan/minmax.h>
+#include <rdma/ib_user_ioctl_verbs.h>
+#include <sys/ioctl.h>
 
 int ibv_cmd_get_context(struct ibv_context *context, struct ibv_get_context *cmd,
 			size_t cmd_size, struct ibv_get_context_resp *resp,
@@ -462,27 +464,54 @@ int ibv_cmd_dealloc_mw(struct ibv_mw *mw,
 	return 0;
 }
 
+struct ibv_ioctl_cmd_create_cq {
+	struct ib_uverbs_ioctl_hdr hdr;
+	struct ib_uverbs_attr attrs[CREATE_CQ_RESP_CQE + 1 + UVERBS_UHW_OUT + 1];
+} __attribute__((packed, aligned(4)));
+/* handle, cqe, user_handle, comp_channel, comp_vector, <flags>, resp_cqe */
+#define UVERBS_ID_GROUP_SHIFT 12
+#define BIT(x) (1UL << (x))
 int ibv_cmd_create_cq(struct ibv_context *context, int cqe,
 		      struct ibv_comp_channel *channel,
 		      int comp_vector, struct ibv_cq *cq,
-		      struct ibv_create_cq *cmd, size_t cmd_size,
-		      struct ibv_create_cq_resp *resp, size_t resp_size)
+		      struct ibv_create_cq *legacy_cmd, size_t cmd_size,
+		      struct ibv_create_cq_resp *legacy_resp, size_t resp_size)
 {
-	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_CQ, resp, resp_size);
-	cmd->user_handle   = (uintptr_t) cq;
-	cmd->cqe           = cqe;
-	cmd->comp_vector   = comp_vector;
-	cmd->comp_channel  = channel ? channel->fd : -1;
-	cmd->reserved      = 0;
+	__s32 comp_channel = channel ? channel->fd : -1;
+	struct ibv_ioctl_cmd_create_cq cmd;
+	int ret;
+	__u32 _cqe = cqe;
+	__u64 _user_handle = (uintptr_t)cq;
+	__u32 _comp_vector = comp_vector;
+	__u32 _cqe_out;
+	struct ib_uverbs_attr *attrs = cmd.attrs;
 
-	if (write(context->cmd_fd, cmd, cmd_size) != cmd_size)
+	fill_attr_obj(attrs++, CREATE_CQ_HANDLE, 0);
+	fill_attr_in(attrs++, CREATE_CQ_CQE, sizeof(_cqe), &_cqe);
+	fill_attr_in(attrs++, CREATE_CQ_USER_HANDLE, sizeof(_user_handle),
+		  &_user_handle);
+	fill_attr_in(attrs++, CREATE_CQ_COMP_VECTOR, sizeof(_comp_vector),
+		  &_comp_vector);
+	fill_attr_out(attrs++, CREATE_CQ_RESP_CQE, sizeof(_cqe_out), &_cqe_out);
+	if (cmd_size - sizeof(struct ibv_create_cq))
+		fill_attr_in(attrs++, UVERBS_UHW_IN | UVERBS_UDATA_DRIVER_DATA_FLAG,
+			     cmd_size - sizeof(struct ibv_create_cq), legacy_cmd + 1);
+	if (resp_size - sizeof(struct ibv_create_cq_resp))
+		fill_attr_out(attrs++, UVERBS_UHW_OUT | UVERBS_UDATA_DRIVER_DATA_FLAG,
+			      resp_size - sizeof(struct ibv_create_cq_resp), legacy_resp + 1);
+	if (channel)
+		fill_attr_obj(attrs++, CREATE_CQ_COMP_CHANNEL, comp_channel);
+
+	fill_ioctl_hdr(&cmd.hdr, UVERBS_TYPE_CQ, (void *)attrs - (void *)&cmd,
+		       UVERBS_CQ_CREATE,
+		       attrs - cmd.attrs);
+	ret = ioctl(context->cmd_fd, RDMA_VERBS_IOCTL, &cmd);
+	if (ret)
 		return errno;
 
-	(void) VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
-
-	cq->handle  = resp->cq_handle;
-	cq->cqe     = resp->cqe;
 	cq->context = context;
+	cq->cqe = _cqe_out;
+	cq->handle = cmd.attrs[0].data;
 
 	return 0;
 }
@@ -614,16 +643,25 @@ int ibv_cmd_resize_cq(struct ibv_cq *cq, int cqe,
 	return 0;
 }
 
+struct ibv_ioctl_cmd_destroy_cq {
+	struct ib_uverbs_ioctl_hdr hdr;
+	struct ib_uverbs_attr attrs[DESTROY_CQ_RESP + 1];
+} __attribute__((packed, aligned(4)));
+/* handle, cqe, user_handle, comp_channel, comp_vector, <flags>, resp_cqe */
+
 int ibv_cmd_destroy_cq(struct ibv_cq *cq)
 {
-	struct ibv_destroy_cq      cmd;
 	struct ibv_destroy_cq_resp resp;
+	struct ibv_ioctl_cmd_destroy_cq cmd;
+	struct ib_uverbs_attr *cattr = cmd.attrs;
 
-	IBV_INIT_CMD_RESP(&cmd, sizeof cmd, DESTROY_CQ, &resp, sizeof resp);
-	cmd.cq_handle = cq->handle;
-	cmd.reserved  = 0;
+	fill_attr_obj(cattr++, DESTROY_CQ_HANDLE, cq->handle);
+	fill_attr_out(cattr++, DESTROY_CQ_RESP, sizeof(resp), &resp);
+	fill_ioctl_hdr(&cmd.hdr, UVERBS_TYPE_CQ,
+		       (void *)cattr - (void *)&cmd,
+		       UVERBS_CQ_DESTROY, cattr - cmd.attrs);
 
-	if (write(cq->context->cmd_fd, &cmd, sizeof cmd) != sizeof cmd)
+	if (ioctl(cq->context->cmd_fd, RDMA_VERBS_IOCTL, &cmd))
 		return errno;
 
 	(void) VALGRIND_MAKE_MEM_DEFINED(&resp, sizeof resp);

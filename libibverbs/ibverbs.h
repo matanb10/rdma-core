@@ -39,6 +39,7 @@
 #include <infiniband/driver.h>
 
 #include <valgrind/memcheck.h>
+#include <rdma/rdma_user_ioctl.h>
 
 #define INIT		__attribute__((constructor))
 
@@ -115,5 +116,51 @@ struct verbs_ex_private {
 
 #define IBV_INIT_CMD_EX(cmd, size, opcode)				     \
 	IBV_INIT_CMD_RESP_EX_V(cmd, sizeof(*(cmd)), size, opcode, NULL, 0, 0)
+
+static inline void fill_ioctl_hdr(struct ib_uverbs_ioctl_hdr *cmd,
+				  uint16_t object_type, uint32_t length, uint16_t action,
+				  size_t num_attr)
+{
+	cmd->length = length;
+	cmd->reserved = 0;
+	cmd->object_type = object_type;
+	cmd->action = action;
+	cmd->num_attrs = num_attr;
+}
+
+static inline void fill_attr(struct ib_uverbs_attr *attr, uint16_t attr_id,
+			     uint16_t len, void *data)
+{
+	attr->attr_id = attr_id;
+	attr->len = len;
+	attr->flags = UVERBS_ATTR_F_MANDATORY;
+	attr->reserved = 0;
+}
+
+static inline void fill_attr_in(struct ib_uverbs_attr *attr, uint16_t attr_id,
+				uint16_t len, void *data)
+{
+	fill_attr(attr, attr_id, len, data);
+	if (len <= sizeof(uint64_t))
+	    memcpy((void *)&attr->data, data, len);
+	else
+	    attr->data = (uint64_t)data;
+}
+
+static inline void fill_attr_out(struct ib_uverbs_attr *attr, uint16_t attr_id,
+				uint16_t len, void *data)
+{
+	fill_attr(attr, attr_id, len, data);
+	attr->data = (uint64_t)data;
+}
+
+static inline void fill_attr_obj(struct ib_uverbs_attr *attr, uint16_t attr_id,
+				 uint32_t idr)
+{
+	attr->attr_id = attr_id;
+	attr->len = 0;
+	attr->reserved = 0;
+	attr->data = idr;
+}
 
 #endif /* IB_VERBS_H */
