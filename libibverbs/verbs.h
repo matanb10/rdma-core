@@ -1379,6 +1379,7 @@ enum ibv_flow_spec_type {
 	IBV_FLOW_SPEC_INNER		= 0x100,
 	IBV_FLOW_SPEC_ACTION_TAG	= 0x1000,
 	IBV_FLOW_SPEC_ACTION_DROP	= 0x1001,
+	IBV_FLOW_SPEC_ACTION_HANDLE	= 0x1002,
 };
 
 struct ibv_flow_eth_filter {
@@ -1489,6 +1490,13 @@ struct ibv_flow_spec_action_drop {
 	uint16_t  size;
 };
 
+struct ibv_flow_spec_action_handle {
+	enum ibv_flow_spec_type  type;
+	uint16_t  size;
+	const struct ibv_flow_action *action;
+	/* More parameters could be inserted here */
+};
+
 struct ibv_flow_spec {
 	union {
 		struct {
@@ -1504,6 +1512,7 @@ struct ibv_flow_spec {
 		struct ibv_flow_spec_tunnel tunnel;
 		struct ibv_flow_spec_action_tag flow_tag;
 		struct ibv_flow_spec_action_drop drop;
+		struct ibv_flow_spec_action_handle handle;
 	};
 };
 
