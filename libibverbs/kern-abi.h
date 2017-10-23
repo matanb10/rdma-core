@@ -981,6 +981,14 @@ struct ibv_kern_spec_action_drop {
 	__u16 reserved;
 };
 
+struct ibv_kern_spec_action_handle {
+	__u32  type;
+	__u16  size;
+	__u16 reserved;
+	__u32 handle;
+	__u32 reserved1;
+};
+
 struct ibv_kern_spec {
 	union {
 		struct {
@@ -997,6 +1005,7 @@ struct ibv_kern_spec {
 		struct ibv_kern_spec_tunnel tunnel;
 		struct ibv_kern_spec_action_tag flow_tag;
 		struct ibv_kern_spec_action_drop drop;
+		struct ibv_kern_spec_action_handle handle;
 	};
 };
 
