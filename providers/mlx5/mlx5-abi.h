@@ -34,6 +34,7 @@
 #define MLX5_ABI_H
 
 #include <infiniband/kern-abi.h>
+#include <rdma/ib_user_ioctl_cmds.h>
 #include <infiniband/verbs.h>
 #include "mlx5dv.h"
 
@@ -314,6 +315,10 @@ struct mlx5_query_device_ex_resp {
 	struct mlx5_striding_rq_caps	striding_rq_caps;
 	__u32				tunnel_offloads_caps;
 	__u32				reserved;
+};
+
+enum mlx5_ib_create_flow_action_attrs {
+	MLX5_IB_CREATE_FLOW_ACTION_FLAGS		= (1U << UVERBS_ID_NS_SHIFT) | (1 << 0),
 };
 
 #endif /* MLX5_ABI_H */

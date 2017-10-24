@@ -151,6 +151,24 @@ struct mlx5dv_qp_init_attr {
 struct ibv_qp *mlx5dv_create_qp(struct ibv_context *context,
 				struct ibv_qp_init_attr_ex *qp_attr,
 				struct mlx5dv_qp_init_attr *mlx5_qp_attr);
+
+enum mlx5dv_flow_action_esp_mask {
+	MLX5DV_FLOW_ACTION_ESP_MASK_FLAGS	= 1 << 0,
+};
+
+enum mlx5dv_flow_action_flags {
+	MLX5DV_FLOW_ACTION_FLAGS_REQUIRE_METADATA	= 1 << 0,
+};
+
+struct mlx5dv_flow_action_esp {
+	uint64_t comp_mask;  /* Use enum mlx5dv_flow_action_esp_mask */
+	uint32_t action_flags; /* Use enum mlx5dv_flow_action_flags */
+};
+
+struct ibv_flow_action *mlx5dv_create_flow_action_esp(struct ibv_context *ctx,
+						      const struct ibv_flow_action_esp_attr *esp,
+						      struct mlx5dv_flow_action_esp *mlx5_attr);
+
 /*
  * Most device capabilities are exported by ibv_query_device(...),
  * but there is HW device-specific information which is important
