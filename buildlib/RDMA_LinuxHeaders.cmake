@@ -99,3 +99,5 @@ rdma_check_kheader("rdma/vmw_pvrdma-abi.h" "int main(int argc,const char *argv[]
 rdma_check_kheader("rdma/rdma_user_ioctl_verbs.h" "${DEFAULT_TEST}")
 rdma_check_kheader("rdma/ib_user_ioctl_verbs.h" "int main(int argc,const char *argv[]) {return RDMA_UAPI_CONST(FLOW_ACTION_ESP_FLAGS_ESN_NEW_WINDOW);}")
 rdma_check_kheader("rdma/ib_user_ioctl_cmds.h" "int main(int argc,const char *argv[]) {return UVERBS_METHOD_FLOW_ACTION_ESP_MODIFY;}")
+rdma_check_kheader("rdma/mlx5_user_ioctl_verbs.h" "${DEFAULT_TEST}")
+rdma_check_kheader("rdma/mlx5_user_ioctl_cmds.h" "${DEFAULT_TEST}")

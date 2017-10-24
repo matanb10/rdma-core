@@ -16,3 +16,4 @@ libmlx5.so.1 ibverbs-providers #MINVER#
  mlx5dv_set_context_attr@MLX5_1.2 15
  mlx5dv_create_qp@MLX5_1.3 16
  mlx5dv_create_wq@MLX5_1.3 16
+ mlx5dv_create_flow_action_esp@MLX5_1.4 17

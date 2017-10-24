@@ -46,6 +46,8 @@
 
 #include <util/compiler.h>
 #include <util/mmio.h>
+#include <rdma/ib_user_ioctl_cmds.h>
+#include <rdma/mlx5_user_ioctl_cmds.h>
 
 #include "mlx5.h"
 #include "mlx5-abi.h"
@@ -2563,6 +2565,41 @@ struct ibv_flow_action *mlx5_create_flow_action_esp(struct ibv_context *ctx,
 	}
 
 	ret = ibv_cmd_create_flow_action_esp(ctx, attr, action, NULL);
+	if (ret) {
+		errno = ret;
+		free(action);
+		return NULL;
+	}
+
+	return &action->action;
+}
+
+struct ibv_flow_action *mlx5dv_create_flow_action_esp(struct ibv_context *ctx,
+						      struct ibv_flow_action_esp_attr *esp,
+						      struct mlx5dv_flow_action_esp *mlx5_attr)
+{
+	DECLARE_COMMAND_BUFFER(attrs, UVERBS_OBJECT_FLOW_ACTION,
+			       UVERBS_METHOD_FLOW_ACTION_ESP_CREATE, 1);
+	struct verbs_flow_action *action;
+	int ret;
+
+	if (!check_comp_mask(mlx5_attr->comp_mask,
+			     MLX5DV_FLOW_ACTION_ESP_MASK_FLAGS)) {
+		errno = EOPNOTSUPP;
+		return NULL;
+	}
+
+	if (mlx5_attr->comp_mask & MLX5DV_FLOW_ACTION_ESP_MASK_FLAGS)
+		fill_attr_in_uint64(attrs, MLX5_IB_CREATE_FLOW_ACTION_FLAGS,
+				    mlx5_attr->action_flags);
+
+	action = calloc(1, sizeof(*action));
+	if (!action) {
+		errno = ENOMEM;
+		return NULL;
+	}
+
+	ret = ibv_cmd_create_flow_action_esp(ctx, esp, action, attrs);
 	if (ret) {
 		errno = ret;
 		free(action);
