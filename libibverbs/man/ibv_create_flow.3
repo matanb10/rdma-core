@@ -52,6 +52,7 @@ enum ibv_flow_flags {
 .in +8
 IBV_FLOW_ATTR_FLAGS_ALLOW_LOOP_BACK = 1 << 0,	/* Apply the rules on packets that were sent from the attached QP through loopback */
 IBV_FLOW_ATTR_FLAGS_DONT_TRAP       = 1 << 1,	/* Rule doesn't trap received packets, allowing them to match lower prioritized rules */
+IBV_FLOW_ATTR_FLAGS_EGRESS          = 1 << 2,	/* Match sent packets against EGRESS rules and carry associated actions if required */
 .in -8
 };
 .fi
@@ -141,6 +142,9 @@ or
 4. Only rule type IBV_FLOW_ATTR_NORMAL supports IBV_FLOW_ATTR_FLAGS_DONT_TRAP flag.
 .br
 5. No specifications are needed for IBV_FLOW_ATTR_SNIFFER rule type.
+.br
+6. When IBV_FLOW_ATTR_FLAGS_EGRESS flag is set, the qp parameter is used only as a mean to get the device.
+   The rule is applied port wise regardless of the QP originating the packets.
 .br
 .PP
 .SH EXAMPLE
