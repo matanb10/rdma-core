@@ -67,7 +67,7 @@ struct mlx5_alloc_ucontext {
 	struct ibv_get_context		ibv_req;
 	__u32				total_num_uuars;
 	__u32				num_low_latency_uuars;
-	__u32				flags;
+	__u32				flow_action_flags;
 	__u32				comp_mask;
 	__u8				cqe_version;
 	__u8				reserved0;
@@ -78,6 +78,13 @@ struct mlx5_alloc_ucontext {
 
 enum mlx5_ib_alloc_ucontext_resp_mask {
 	MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_CORE_CLOCK_OFFSET = 1UL << 0,
+};
+
+enum {
+	MLX5_IB_ALLOC_UCONTEXT_FLOW_ACTION_FLAGS_ESP_AES_GCM_REQ_METADATA = 1U << 0,
+	MLX5_IB_ALLOC_UCONTEXT_FLOW_ACTION_FLAGS_ESP_AES_GCM_RX = 1U << 1,
+	MLX5_IB_ALLOC_UCONTEXT_FLOW_ACTION_FLAGS_ESP_AES_GCM_TX = 1U << 2,
+	MLX5_IB_ALLOC_UCONTEXT_FLOW_ACTION_FLAGS_ESP_AES_GCM_SPI_RSS_ONLY = 1U << 3,
 };
 
 struct mlx5_alloc_ucontext_resp {
@@ -92,7 +99,7 @@ struct mlx5_alloc_ucontext_resp {
 	__u32				max_recv_wr;
 	__u32				max_srq_recv_wr;
 	__u16				num_ports;
-	__u16				reserved1;
+	__u16				flow_action_flags;
 	__u32				comp_mask;
 	__u32				response_length;
 	__u8				cqe_version;
