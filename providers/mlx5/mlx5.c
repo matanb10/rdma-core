@@ -1023,6 +1023,8 @@ static struct verbs_context *mlx5_alloc_context(struct ibv_device *ibdev,
 		mlx5_map_internal_clock(mdev, &v_ctx->context);
 	}
 
+	context->flow_action_flags = resp.flow_action_flags;
+
 	mlx5_read_env(ibdev, context);
 
 	mlx5_spinlock_init(&context->hugetlb_lock);
