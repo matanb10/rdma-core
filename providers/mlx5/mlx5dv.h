@@ -62,7 +62,8 @@ enum mlx5dv_context_comp_mask {
 	MLX5DV_CONTEXT_MASK_SWP			= 1 << 1,
 	MLX5DV_CONTEXT_MASK_STRIDING_RQ		= 1 << 2,
 	MLX5DV_CONTEXT_MASK_TUNNEL_OFFLOADS	= 1 << 3,
-	MLX5DV_CONTEXT_MASK_RESERVED		= 1 << 4,
+	MLX5DV_CONTEXT_MASK_FLOW_ACTION_FLAGS	= 1 << 4,
+	MLX5DV_CONTEXT_MASK_RESERVED		= 1 << 5,
 };
 
 struct mlx5dv_cqe_comp_caps {
@@ -89,6 +90,13 @@ enum mlx5dv_tunnel_offloads {
 	MLX5DV_RAW_PACKET_CAP_TUNNELED_OFFLOAD_GENEVE	= 1 << 2,
 };
 
+enum {
+	MLX5DV_CONTEXT_FLOW_ACTION_FLAGS_ESP_AES_GCM_REQ_METADATA = 1U << 0,
+	MLX5DV_CONTEXT_FLOW_ACTION_FLAGS_ESP_AES_GCM_RX = 1U << 1,
+	MLX5DV_CONTEXT_FLOW_ACTION_FLAGS_ESP_AES_GCM_TX = 1U << 2,
+	MLX5DV_CONTEXT_FLOW_ACTION_FLAGS_ESP_AES_GCM_SPI_RSS_ONLY = 1U << 3,
+};
+
 /*
  * Direct verbs device-specific attributes
  */
@@ -100,6 +108,7 @@ struct mlx5dv_context {
 	struct mlx5dv_sw_parsing_caps sw_parsing_caps;
 	struct mlx5dv_striding_rq_caps striding_rq_caps;
 	uint32_t	tunnel_offloads_caps;
+	uint32_t	flow_action_flags;
 };
 
 enum mlx5dv_context_flags {
