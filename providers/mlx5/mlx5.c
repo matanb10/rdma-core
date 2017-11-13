@@ -685,6 +685,9 @@ int mlx5dv_query_device(struct ibv_context *ctx_in,
 		comp_mask_out |= MLX5DV_CONTEXT_MASK_DYN_BFREGS;
 	}
 
+	if (attrs_out->comp_mask & MLX5DV_CONTEXT_MASK_FLOW_ACTION_FLAGS)
+		attrs_out->flow_action_flags = mctx->flow_action_flags;
+
 	attrs_out->comp_mask = comp_mask_out;
 
 	return 0;
