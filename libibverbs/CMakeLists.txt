@@ -11,6 +11,7 @@ publish_headers(infiniband
 publish_internal_headers(infiniband
   driver.h
   marshall.h
+  verbs_ioctl.h
   )
 
 if (NOT NL_KIND EQUAL 0)
@@ -36,6 +37,7 @@ rdma_library(ibverbs "${CMAKE_CURRENT_BINARY_DIR}/libibverbs.map"
   ${NEIGH}
   sysfs.c
   verbs.c
+  cmd_ioctl.c
   )
 target_link_libraries(ibverbs LINK_PRIVATE
   ${NL_LIBRARIES}

@@ -43,6 +43,7 @@
 
 #include "ibverbs.h"
 #include <ccan/minmax.h>
+#include <valgrind/memcheck.h>
 
 int ibv_cmd_get_context(struct verbs_context *context_ex,
 			struct ibv_get_context *cmd, size_t cmd_size,

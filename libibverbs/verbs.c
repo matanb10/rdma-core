@@ -53,6 +53,7 @@
 #include <net/if_arp.h>
 #include "neigh.h"
 #endif
+#include <valgrind/memcheck.h>
 
 #undef ibv_query_port
 
