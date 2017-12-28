@@ -116,6 +116,7 @@ static const struct verbs_context_ops mlx5_ctx_common_ops = {
 
 	.close_xrcd = mlx5_close_xrcd,
 	.create_cq_ex = mlx5_create_cq_ex,
+	.create_flow_action_esp = mlx5_create_flow_action_esp,
 	.create_qp_ex = mlx5_create_qp_ex,
 	.create_rwq_ind_table = mlx5_create_rwq_ind_table,
 	.create_srq_ex = mlx5_create_srq_ex,
@@ -126,6 +127,7 @@ static const struct verbs_context_ops mlx5_ctx_common_ops = {
 	.create_flow = mlx5_create_flow,
 	.destroy_flow = mlx5_destroy_flow,
 	.modify_cq = mlx5_modify_cq,
+	.modify_flow_action_esp = mlx5_modify_flow_action_esp,
 	.modify_wq = mlx5_modify_wq,
 	.open_xrcd = mlx5_open_xrcd,
 	.post_srq_ops = mlx5_post_srq_ops,
