@@ -57,6 +57,19 @@ static inline uint64_t ioctl_ptr_to_u64(const void *ptr)
 #endif
 }
 
+static inline void scrub_ptr_attr(void *ptr)
+{
+#if UINTPTR_MAX == UINT64_MAX
+	/* Do nothing */
+#else
+	RDMA_UAPI_PTR(void *, data) *scrub_data;
+	uint64_t ptr64 = ioctl_ptr_to_u64(ptr);
+
+	scrub_data = container_of(ptr, typeof(scrub_data), data);
+	scrub_data->data_reserved = ptr64 >> 32;
+#endif
+}
+
 /*
  * The command buffer is organized as a linked list of blocks of attributes.
  * Each stack frame allocates its block and then calls up toward to core code

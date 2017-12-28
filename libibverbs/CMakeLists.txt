@@ -29,6 +29,7 @@ rdma_library(ibverbs "${CMAKE_CURRENT_BINARY_DIR}/libibverbs.map"
   1 1.1.${PACKAGE_VERSION}
   cmd.c
   cmd_cq.c
+  cmd_flow_action.c
   cmd_ioctl.c
   compat-1_0.c
   device.c
