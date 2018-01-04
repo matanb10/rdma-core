@@ -467,6 +467,7 @@ enum ibv_create_cq_wc_flags {
 	IBV_WC_EX_WITH_CVLAN		= 1 << 8,
 	IBV_WC_EX_WITH_FLOW_TAG		= 1 << 9,
 	IBV_WC_EX_WITH_TM_INFO		= 1 << 10,
+	IBV_WC_EX_WITH_ESP_INFO		= 1 << 11,
 };
 
 enum {
@@ -484,7 +485,8 @@ enum {
 				IBV_WC_EX_WITH_COMPLETION_TIMESTAMP |
 				IBV_WC_EX_WITH_CVLAN |
 				IBV_WC_EX_WITH_FLOW_TAG |
-				IBV_WC_EX_WITH_TM_INFO
+				IBV_WC_EX_WITH_TM_INFO |
+				IBV_WC_EX_WITH_ESP_INFO
 };
 
 enum ibv_wc_flags {
@@ -1164,6 +1166,18 @@ struct ibv_wc_tm_info {
 	uint32_t		priv;	 /* opaque user data from TMH */
 };
 
+enum ibv_wc_esp_info_status {
+	IBV_ESP_SUCCESS,
+	IBV_ESP_CRYPTO_FAIL,
+	IBV_ESP_AUTH_FAIL,
+	IBV_ESP_TRAILER_REMOVAL_FAIL,
+};
+
+struct ibv_wc_esp_info {
+	enum ibv_wc_esp_info_status status;
+	uint8_t next_header;
+};
+
 struct ibv_cq_ex {
 	struct ibv_context     *context;
 	struct ibv_comp_channel *channel;
@@ -1198,6 +1212,8 @@ struct ibv_cq_ex {
 	uint32_t (*read_flow_tag)(struct ibv_cq_ex *current);
 	void (*read_tm_info)(struct ibv_cq_ex *current,
 			     struct ibv_wc_tm_info *tm_info);
+	void (*read_esp_info)(struct ibv_cq_ex *curret,
+			      struct ibv_wc_esp_info *esp_info);
 };
 
 static inline struct ibv_cq *ibv_cq_ex_to_cq(struct ibv_cq_ex *cq)
