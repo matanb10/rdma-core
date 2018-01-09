@@ -36,6 +36,7 @@
 #include <infiniband/verbs_ioctl.h>
 #include <infiniband/driver.h>
 #include <infiniband/kern-abi.h> /* Only needs rdma/ib_user_verbs.h */
+#include <rdma/ib_user_ioctl_cmds.h> /* Only needs rdma/ib_user_verbs.h */
 
 #include <stdbool.h>
 
@@ -90,12 +91,12 @@ static inline void _write_set_uhw(struct ibv_command_buffer *cmdb, void *req,
 				  size_t resp_size)
 {
 	if (req && core_req_size < req_size)
-		fill_attr_in(cmdb, UVERBS_UHW_IN,
+		fill_attr_in(cmdb, UVERBS_ATTR_UHW_IN,
 			     (uint8_t *)req + core_req_size,
 			     req_size - core_req_size);
 
 	if (resp && core_resp_size < resp_size)
-		fill_attr_in(cmdb, UVERBS_UHW_OUT,
+		fill_attr_in(cmdb, UVERBS_ATTR_UHW_OUT,
 			     (uint8_t *)resp + core_resp_size,
 			     resp_size - core_resp_size);
 }
@@ -109,7 +110,7 @@ static inline void _write_set_uhw(struct ibv_command_buffer *cmdb, void *req,
 static inline void *_write_get_req(struct ibv_command_buffer *link,
 				   void *onstack, size_t size)
 {
-	struct ib_uverbs_attr *uhw = _write_get_uhw(link, 0, UVERBS_UHW_IN);
+	struct ib_uverbs_attr *uhw = _write_get_uhw(link, 0, UVERBS_ATTR_UHW_IN);
 	struct ib_uverbs_cmd_hdr *hdr;
 
 	if (uhw) {
@@ -135,7 +136,7 @@ static inline void *_write_get_resp(struct ibv_command_buffer *link,
 				    void *onstack, size_t resp_size,
 				    __u64 *hdr_resp_ptr)
 {
-	struct ib_uverbs_attr *uhw = _write_get_uhw(link, 1, UVERBS_UHW_OUT);
+	struct ib_uverbs_attr *uhw = _write_get_uhw(link, 1, UVERBS_ATTR_UHW_OUT);
 	void *resp_start;
 
 	if (uhw) {

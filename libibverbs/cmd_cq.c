@@ -41,7 +41,7 @@ static int xibv_cmd_create_cq(struct ibv_context *context, int cqe,
 			      struct ibv_cq *cq,
 			      struct ibv_command_buffer *link)
 {
-	DECLARE_COMMAND_BUFFER_FINAL(cmdb, UVERBS_OBJECT_CQ, UVERBS_CQ_CREATE,
+	DECLARE_COMMAND_BUFFER_FINAL(cmdb, UVERBS_OBJECT_CQ, UVERBS_METHOD_CQ_CREATE,
 				     6, link);
 	struct ib_uverbs_attr *handle;
 	uint32_t resp_cqe;
@@ -49,14 +49,14 @@ static int xibv_cmd_create_cq(struct ibv_context *context, int cqe,
 
 	cq->context = context;
 
-	handle = fill_attr_out_obj(cmdb, CREATE_CQ_HANDLE);
-	fill_attr_out_ptr(cmdb, CREATE_CQ_RESP_CQE, &resp_cqe);
+	handle = fill_attr_out_obj(cmdb, UVERBS_ATTR_CREATE_CQ_HANDLE);
+	fill_attr_out_ptr(cmdb, UVERBS_ATTR_CREATE_CQ_RESP_CQE, &resp_cqe);
 
-	fill_attr_in_uint32(cmdb, CREATE_CQ_CQE, cqe);
-	fill_attr_in_uint64(cmdb, CREATE_CQ_USER_HANDLE, (uintptr_t)cq);
+	fill_attr_in_uint32(cmdb, UVERBS_ATTR_CREATE_CQ_CQE, cqe);
+	fill_attr_in_uint64(cmdb, UVERBS_ATTR_CREATE_CQ_USER_HANDLE, (uintptr_t)cq);
 	if (channel)
-		fill_attr_in_fd(cmdb, CREATE_CQ_COMP_CHANNEL, channel->fd);
-	fill_attr_in_uint32(cmdb, CREATE_CQ_COMP_VECTOR, comp_vector);
+		fill_attr_in_fd(cmdb, UVERBS_ATTR_CREATE_CQ_COMP_CHANNEL, channel->fd);
+	fill_attr_in_uint32(cmdb, UVERBS_ATTR_CREATE_CQ_COMP_VECTOR, comp_vector);
 
 	if (!execute_ioctl_fallback(cq->context, create_cq, cmdb, &ret)) {
 		DECLARE_LEGACY_UHW_BUFS(link, struct ibv_create_cq,
@@ -90,19 +90,19 @@ int ibv_cmd_create_cq(struct ibv_context *context, int cqe,
 		      size_t cmd_size, struct ibv_create_cq_resp *resp,
 		      size_t resp_size)
 {
-	DECLARE_CMD_BUFFER_COMPAT(cmdb, UVERBS_OBJECT_CQ, UVERBS_CQ_CREATE);
+	DECLARE_CMD_BUFFER_COMPAT(cmdb, UVERBS_OBJECT_CQ, UVERBS_METHOD_CQ_CREATE);
 
 	return xibv_cmd_create_cq(context, cqe, channel, comp_vector, cq, cmdb);
 }
 
 int ibv_cmd_destroy_cq(struct ibv_cq *cq)
 {
-	DECLARE_COMMAND_BUFFER(cmdb, UVERBS_OBJECT_CQ, UVERBS_CQ_DESTROY, 2);
+	DECLARE_COMMAND_BUFFER(cmdb, UVERBS_OBJECT_CQ, UVERBS_METHOD_CQ_DESTROY, 2);
 	struct ibv_destroy_cq_resp resp;
 	int ret;
 
-	fill_attr_out_ptr(cmdb, DESTROY_CQ_RESP, &resp);
-	fill_attr_in_obj(cmdb, DESTROY_CQ_HANDLE, cq->handle);
+	fill_attr_out_ptr(cmdb, UVERBS_ATTR_DESTROY_CQ_RESP, &resp);
+	fill_attr_in_obj(cmdb, UVERBS_ATTR_DESTROY_CQ_HANDLE, cq->handle);
 
 	if (!execute_ioctl_fallback(cq->context, destroy_cq, cmdb, &ret)) {
 		struct ibv_destroy_cq cmd = {.cq_handle = cq->handle};

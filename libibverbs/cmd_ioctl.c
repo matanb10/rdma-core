@@ -43,6 +43,8 @@
 #include <sys/ioctl.h>
 #include <valgrind/memcheck.h>
 
+#include <rdma/ib_user_ioctl_cmds.h>
+
 /* Number of attrs in this and all the link'd buffers */
 unsigned int _ioctl_final_num_attrs(unsigned int num_attrs,
 				   struct ibv_command_buffer *link)
@@ -127,7 +129,8 @@ int execute_ioctl(struct ibv_context *context, struct ibv_command_buffer *cmd)
 	prepare_attrs(cmd);
 	cmd->hdr.length = sizeof(cmd->hdr) +
 		sizeof(cmd->hdr.attrs[0]) * cmd->hdr.num_attrs;
-	cmd->hdr.reserved = 0;
+	cmd->hdr.reserved1 = 0;
+	cmd->hdr.reserved2 = 0;
 
 	if (ioctl(context->cmd_fd, RDMA_VERBS_IOCTL, &cmd->hdr))
 		return errno;
@@ -153,8 +156,8 @@ static bool is_legacy_not_possible(struct ibv_command_buffer *cmdb, int *ret)
 		goto not_supp;
 
 	for (cur = cmdb->next->hdr.attrs; cur != cmdb->next->next_attr; cur++) {
-		if (cur->attr_id != UVERBS_UHW_IN &&
-		    cur->attr_id != UVERBS_UHW_OUT)
+		if (cur->attr_id != UVERBS_ATTR_UHW_IN &&
+		    cur->attr_id != UVERBS_ATTR_UHW_OUT)
 			goto not_supp;
 	}
 

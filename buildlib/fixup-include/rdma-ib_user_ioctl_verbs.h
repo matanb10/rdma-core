@@ -33,51 +33,89 @@
 #ifndef IB_USER_IOCTL_VERBS_H
 #define IB_USER_IOCTL_VERBS_H
 
-#include <rdma/rdma_user_ioctl.h>
+#ifdef __KERNEL__
+#define RDMA_UAPI_TYPE(_type)		ib_uverbs_ ## _type
+#define RDMA_UAPI_CONST(_const)		IB_UVERBS_ ## _const
+#else
+#define RDMA_UAPI_TYPE(_type)		ibv_ ## _type
+#define RDMA_UAPI_CONST(_const)		IBV_ ## _const
+#endif
 
-#define UVERBS_UDATA_DRIVER_DATA_NS	1
-#define UVERBS_UDATA_DRIVER_DATA_FLAG	(1UL << UVERBS_ID_NS_SHIFT)
+#if UINTPTR_MAX == UINT64_MAX
+#define RDMA_UAPI_PTR(_type, _name)	_type _name
+#elif UINTPTR_MAX == UINT32_MAX
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+#define RDMA_UAPI_PTR(_type, _name) union {
+				       struct {_type _name;		\
+					       __u32 _name ##_reserved;	\
+				       };				\
+				       __u64 _name ## _dummy;}
+#else
+#define RDMA_UAPI_PTR(_type, _name) union {
+				       struct {__u32 _name ##_reserved;	\
+					       _type _name;		\
+				       };				\
+				       __u64 _name ## _dummy;}
+#endif
+#else
+#error "Pointer size not supported"
+#endif
 
-enum uverbs_default_objects {
-	UVERBS_OBJECT_DEVICE, /* No instances of DEVICE are allowed */
-	UVERBS_OBJECT_PD,
-	UVERBS_OBJECT_COMP_CHANNEL,
-	UVERBS_OBJECT_CQ,
-	UVERBS_OBJECT_QP,
-	UVERBS_OBJECT_SRQ,
-	UVERBS_OBJECT_AH,
-	UVERBS_OBJECT_MR,
-	UVERBS_OBJECT_MW,
-	UVERBS_OBJECT_FLOW,
-	UVERBS_OBJECT_XRCD,
-	UVERBS_OBJECT_RWQ_IND_TBL,
-	UVERBS_OBJECT_WQ,
-	UVERBS_OBJECT_LAST,
+enum RDMA_UAPI_TYPE(flow_action_esp_keymat) {
+	RDMA_UAPI_CONST(FLOW_ACTION_ESP_KEYMAT_AES_GCM),
 };
 
-enum {
-	UVERBS_UHW_IN = UVERBS_UDATA_DRIVER_DATA_FLAG,
-	UVERBS_UHW_OUT,
+enum RDMA_UAPI_TYPE(flow_action_esp_keymat_aes_gcm_iv_algo) {
+	RDMA_UAPI_CONST(FLOW_ACTION_IV_ALGO_SEQ),
 };
 
-enum uverbs_create_cq_cmd_attr_ids {
-	CREATE_CQ_HANDLE,
-	CREATE_CQ_CQE,
-	CREATE_CQ_USER_HANDLE,
-	CREATE_CQ_COMP_CHANNEL,
-	CREATE_CQ_COMP_VECTOR,
-	CREATE_CQ_FLAGS,
-	CREATE_CQ_RESP_CQE,
+struct RDMA_UAPI_TYPE(flow_action_esp_keymat_aes_gcm) {
+	__u64	iv;
+	__u32	iv_algo; /* Use enum ib_uverbs_flow_action_iv_algo */
+
+	__u32   salt;
+	__u32	icv_len;
+
+	__u32	key_len;
+	__u32   aes_key[256 / 32];
 };
 
-enum uverbs_destroy_cq_cmd_attr_ids {
-	DESTROY_CQ_HANDLE,
-	DESTROY_CQ_RESP,
+enum RDMA_UAPI_TYPE(flow_action_esp_replay) {
+	RDMA_UAPI_CONST(FLOW_ACTION_ESP_REPLAY_NONE),
+	RDMA_UAPI_CONST(FLOW_ACTION_ESP_REPLAY_BMP),
 };
 
-enum uverbs_actions_cq_ops {
-	UVERBS_CQ_CREATE,
-	UVERBS_CQ_DESTROY,
+struct RDMA_UAPI_TYPE(flow_action_esp_replay_bmp) {
+	__u32	size;
+};
+
+enum RDMA_UAPI_TYPE(flow_action_esp_flags) {
+	RDMA_UAPI_CONST(FLOW_ACTION_ESP_FLAGS_INLINE_CRYPTO)	= 0,	/* Default */
+	RDMA_UAPI_CONST(FLOW_ACTION_ESP_FLAGS_FULL_OFFLAOD)	= 1UL << 0,
+
+	RDMA_UAPI_CONST(FLOW_ACTION_ESP_FLAGS_TUNNEL)		= 0,	/* Default */
+	RDMA_UAPI_CONST(FLOW_ACTION_ESP_FLAGS_TRANSPORT)	= 1UL << 1,
+
+	RDMA_UAPI_CONST(FLOW_ACTION_ESP_FLAGS_DECRYPT)		= 0,	/* Default */
+	RDMA_UAPI_CONST(FLOW_ACTION_ESP_FLAGS_ENCRYPT)		= 1UL << 2,
+
+	RDMA_UAPI_CONST(FLOW_ACTION_ESP_FLAGS_ESN_NEW_WINDOW)	= 1UL << 3,
+};
+
+struct RDMA_UAPI_TYPE(flow_action_esp_encap) {
+	RDMA_UAPI_PTR(struct RDMA_UAPI_TYPE(flow_action_esp_encap) *, mask_ptr);
+	RDMA_UAPI_PTR(struct RDMA_UAPI_TYPE(flow_action_esp_encap) *, val_ptr);
+	RDMA_UAPI_PTR(struct RDMA_UAPI_TYPE(flow_action_esp_encap) *, next_ptr);
+	__u16	len;		/* Len of mask and pointer (separately) */
+	__u16	type;		/* Use flow_spec enum */
+};
+
+struct RDMA_UAPI_TYPE(flow_action_esp) {
+	__u32	spi;
+	__u32	seq;
+	__u32	tfc_pad;
+	__u32	flags;
+	__u64	hard_limit_pkts;
 };
 
 #endif
