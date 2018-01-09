@@ -38,6 +38,8 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <valgrind/memcheck.h>
+#include <infiniband/driver.h>
+#include "ibverbs.h"
 
 #include <rdma/ib_user_ioctl_cmds.h>
 
@@ -122,10 +124,13 @@ static void finalize_attrs(struct ibv_command_buffer *cmd)
 
 int execute_ioctl(struct ibv_context *context, struct ibv_command_buffer *cmd)
 {
+       struct verbs_context *vctx = verbs_get_ctx(context);
+
 	prepare_attrs(cmd);
 	cmd->hdr.length = sizeof(cmd->hdr) +
 		sizeof(cmd->hdr.attrs[0]) * cmd->hdr.num_attrs;
 
+       cmd->hdr.driver_id = vctx->priv->driver_id;
 	if (ioctl(context->cmd_fd, RDMA_VERBS_IOCTL, &cmd->hdr))
 		return errno;
 

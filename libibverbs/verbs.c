@@ -46,6 +46,7 @@
 
 #include <util/compiler.h>
 #include <util/symver.h>
+#include <valgrind/memcheck.h>
 
 #include "ibverbs.h"
 #ifndef NRESOLVE_NEIGH
