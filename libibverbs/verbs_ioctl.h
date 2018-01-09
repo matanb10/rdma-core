@@ -112,9 +112,8 @@ int _ioctl_init_final_cmdb(struct ibv_command_buffer *cmd, uint16_t object_id,
 				 .method_id = (_method_id),                    \
 				 .num_attrs = _IOCTL_NUM_CMDB(_num_attrs),     \
 			 },                                                    \
-		 .next = (included),                                           \
+		 .next = _link,						       \
 		 .next_attr = _name[0].hdr.attrs,                              \
-		 .base_attr = _name[0].hdr.attrs,                              \
 		 .last_attr = _name[0].hdr.attrs + _num_attrs},                \
 	}
 
@@ -131,7 +130,7 @@ int _ioctl_init_final_cmdb(struct ibv_command_buffer *cmd, uint16_t object_id,
 #define DECLARE_COMMAND_BUFFER_FINAL(_name, _object_id, _method_id,            \
 				     _num_attrs, _link)                        \
 	unsigned int __##_name##total =                                        \
-		_ioctl_final_num_cmdb(_num_attrs, _link);                      \
+		_ioctl_final_num_attrs(_num_attrs, _link);                     \
 	struct ibv_command_buffer _name[_IOCTL_NUM_CMDB(__##_name##total)];    \
 	int __attribute__((unused)) __##_name##dummy =                         \
 		_ioctl_init_final_cmdb(_name, _object_id, _method_id, _link,   \

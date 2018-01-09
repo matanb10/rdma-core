@@ -53,6 +53,7 @@ int _ioctl_init_final_cmdb(struct ibv_command_buffer *cmd, uint16_t object_id,
 			   uint16_t method_id, struct ibv_command_buffer *next,
 			   size_t num_attrs, size_t total_attrs)
 {
+	memset(&cmd->hdr, 0, sizeof(cmd->hdr));
 	cmd->hdr.object_id = object_id;
 	cmd->hdr.method_id = method_id;
 	cmd->next = next;
@@ -96,13 +97,8 @@ static void finalize_attrs(struct ibv_command_buffer *cmd)
 	struct ibv_command_buffer *link;
 
 	for (end = cmd->hdr.attrs; end != cmd->last_attr; end++)
-		/* MATAN: This still seems like it needs my bitmap
-		 * approach. If the underlying type is not
-		 * UVERBS_ATTR_TYPE_PTR_OUT then data is not a pointer and we
-		 * cannot call valgrind. Which is the other thing my bitmap
-		 * handled as the bit set was only done in fill_attr_out..
-		 */
-		if (end->flags & UVERBS_ATTR_F_VALID_OUTPUT) {
+		if (end->flags & UVERBS_ATTR_F_VALID_OUTPUT &&
+		    end->len) {
 			VALGRIND_MAKE_MEM_DEFINED((void *)(uintptr_t)end->data,
 						  end->len);
 		}
@@ -111,13 +107,12 @@ static void finalize_attrs(struct ibv_command_buffer *cmd)
 		struct ib_uverbs_attr *cur;
 
 		for (cur = link->hdr.attrs; cur != link->next_attr; cur++) {
-			if (end->flags & UVERBS_ATTR_F_VALID_OUTPUT) {
+			if (end->flags & UVERBS_ATTR_F_VALID_OUTPUT &&
+			    end->len) {
 				VALGRIND_MAKE_MEM_DEFINED(
 					(void *)(uintptr_t)end->data, end->len);
 			}
 
-			/* FIXME: Should we only copy UVERBS_ATTR_F_VALID_OUTPUT
-			 * ? */
 			*cur = *end++;
 		}
 	}
