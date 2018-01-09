@@ -864,7 +864,8 @@ static struct verbs_context *rxe_alloc_context(struct ibv_device *ibdev,
 	struct ibv_get_context cmd;
 	struct ibv_get_context_resp resp;
 
-	context = verbs_init_and_alloc_context(ibdev, cmd_fd, context, ibv_ctx);
+	context = verbs_init_and_alloc_context(ibdev, cmd_fd, context, ibv_ctx,
+					       RDMA_DRIVER_RXE);
 	if (!context)
 		return NULL;
 

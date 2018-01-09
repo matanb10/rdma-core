@@ -913,7 +913,8 @@ static struct verbs_context *mlx5_alloc_context(struct ibv_device *ibdev,
 	int				bfi;
 	int				num_sys_page_map;
 
-	context = verbs_init_and_alloc_context(ibdev, cmd_fd, context, ibv_ctx);
+	context = verbs_init_and_alloc_context(ibdev, cmd_fd, context, ibv_ctx,
+					       RDMA_DRIVER_MLX5);
 	if (!context)
 		return NULL;
 
@@ -1138,6 +1139,7 @@ static struct verbs_device *mlx5_device_alloc(struct verbs_sysfs_dev *sysfs_dev)
 
 	dev->page_size   = sysconf(_SC_PAGESIZE);
 	dev->driver_abi_ver = sysfs_dev->abi_ver;
+
 
 	return &dev->verbs_dev;
 }

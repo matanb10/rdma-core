@@ -41,6 +41,7 @@
 #include <alloca.h>
 #include <string.h>
 
+#include <valgrind/memcheck.h>
 #include "ibverbs.h"
 #include <ccan/minmax.h>
 
