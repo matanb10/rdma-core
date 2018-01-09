@@ -283,4 +283,19 @@ fill_attr_out(struct ibv_command_buffer *cmd, uint16_t attr_id, size_t len,
 #define fill_attr_out_ptr(cmd, attr_id, ptr)                                 \
 	fill_attr_out(cmd, attr_id, sizeof(*(ptr)), (ptr))
 
+static inline struct ib_uverbs_attr *
+fill_attr_in_enum(struct ibv_command_buffer *cmd, uint16_t attr_id,
+		  uint8_t elem_id, size_t len, const void *data)
+{
+	struct ib_uverbs_attr *attr;
+
+	attr = fill_attr_in(cmd, attr_id, len, data);
+	attr->attr_data.enum_data.elem_id = elem_id;
+
+	return attr;
+}
+
+#define fill_attr_in_enum_ptr(cmd, attr_id, elem_id, ptr)		       \
+	fill_attr_in_enum(cmd, attr_id, elem_id, sizeof(*(ptr)), (ptr))
+
 #endif
