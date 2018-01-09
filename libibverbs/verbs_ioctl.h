@@ -35,7 +35,8 @@
 
 #include <stdint.h>
 #include <assert.h>
-#include <rdma/rdma_user_ioctl.h>
+#include <linux/types.h>
+#include <rdma/rdma_user_ioctl_verbs.h>
 #include <rdma/ib_user_ioctl_verbs.h>
 #include <infiniband/verbs.h>
 

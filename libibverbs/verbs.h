@@ -43,6 +43,7 @@
 #include <string.h>
 #include <linux/types.h>
 #include <stdint.h>
+#include <rdma/ib_user_ioctl_verbs.h>
 
 #ifdef __cplusplus
 #include <limits>

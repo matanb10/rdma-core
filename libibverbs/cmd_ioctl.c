@@ -39,6 +39,8 @@
 #include <sys/ioctl.h>
 #include <valgrind/memcheck.h>
 
+#include <rdma/ib_user_ioctl_cmds.h>
+
 /* Number of attrs in this and all the link'd buffers */
 unsigned int _ioctl_final_num_attrs(unsigned int num_attrs,
 				   struct ibv_command_buffer *link)
@@ -143,11 +145,11 @@ int _execute_ioctl_legacy(struct ibv_context *context,
 			  size_t resp_total_len)
 {
 	if (cmd_common_len < cmd_total_len)
-		fill_attr_in(cmdb, UVERBS_UHW_IN,
+		fill_attr_in(cmdb, UVERBS_ATTR_UHW_IN,
 			     cmd_total_len - cmd_common_len,
 			     (const uint8_t *)cmd + cmd_common_len);
 	if (resp_common_len < resp_total_len)
-		fill_attr_in(cmdb, UVERBS_UHW_OUT,
+		fill_attr_in(cmdb, UVERBS_ATTR_UHW_OUT,
 			     resp_total_len - resp_common_len,
 			     (const uint8_t *)resp + resp_common_len);
 
