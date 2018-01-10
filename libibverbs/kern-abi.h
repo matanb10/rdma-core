@@ -138,6 +138,12 @@ enum {
  *    different between 32-bit and 64-bit architectures.
  */
 
+struct ib_uverbs_cmd_hdr {
+	__u32 command;
+	__u16 in_words;
+	__u16 out_words;
+};
+
 struct hdr {
 	__u32 command;
 	__u16 in_words;

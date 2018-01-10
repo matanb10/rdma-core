@@ -12,6 +12,7 @@ publish_internal_headers(infiniband
   driver.h
   marshall.h
   verbs_ioctl.h
+  verbs_write.h
   )
 
 if (NOT NL_KIND EQUAL 0)

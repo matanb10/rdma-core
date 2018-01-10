@@ -31,6 +31,10 @@
  */
 
 #include <infiniband/verbs_ioctl.h>
+#include <infiniband/verbs_write.h>
+#include "ibverbs.h"
+
+#include <ccan/build_assert.h>
 
 #include <unistd.h>
 #include <stdio.h>
@@ -129,6 +133,77 @@ int execute_ioctl(struct ibv_context *context, struct ibv_command_buffer *cmd)
 		return errno;
 
 	finalize_attrs(cmd);
+
+	return 0;
+}
+
+/*
+ * Check if the command buffer provided by the driver includes anything that
+ * is not compatible with the legacy interface.  If so, then
+ * _execute_ioctl_fallback indicates it handled the call and sets the error code
+ */
+static bool is_legacy_not_possible(struct ibv_command_buffer *cmdb, int *ret)
+{
+	struct ib_uverbs_attr *cur;
+
+	if (!cmdb->next)
+		return false;
+
+	if (cmdb->next->next_attr - cmdb->next->hdr.attrs > 2)
+		goto not_supp;
+
+	for (cur = cmdb->next->hdr.attrs; cur != cmdb->next->next_attr; cur++) {
+		if (cur->attr_id != UVERBS_UHW_IN &&
+		    cur->attr_id != UVERBS_UHW_OUT)
+			goto not_supp;
+	}
+
+	return false;
+
+not_supp:
+	errno = EOPNOTSUPP;
+	*ret = EOPNOTSUPP;
+	return true;
+}
+
+/*
+ * Used to support callers that have a fallback to the old write ABI
+ * interface.
+ */
+bool _execute_ioctl_fallback(struct ibv_context *ctx, unsigned int cmd_bit,
+			     struct ibv_command_buffer *cmdb, int *ret)
+{
+	uint64_t cmd_val = 1ULL << cmd_bit;
+
+	BUILD_ASSERT(sizeof(struct verbs_context_ops) / sizeof(void *) < 64);
+
+	struct verbs_ex_private *priv =
+		container_of(ctx, struct verbs_context, context)->priv;
+
+	if (!(priv->enabled_ioctls & cmd_val))
+		return is_legacy_not_possible(cmdb, ret);
+
+	*ret = execute_ioctl(ctx, cmdb);
+
+	if (*ret == ENOSYS) {
+		priv->enabled_ioctls &= ~cmd_val;
+		return is_legacy_not_possible(cmdb, ret);
+	}
+
+	return true;
+}
+
+int _execute_write_raw(unsigned int cmdnum, struct ibv_context *ctx,
+		       struct ib_uverbs_cmd_hdr *req, void *resp)
+{
+	struct ib_uverbs_cmd_hdr *hdr = req;
+
+	hdr->command = cmdnum;
+
+	if (write(ctx->cmd_fd, req, req->in_words * 4) != req->in_words * 4)
+		return errno;
+
+	VALGRIND_MAKE_MEM_DEFINED(resp, req->out_words * 4);
 
 	return 0;
 }
